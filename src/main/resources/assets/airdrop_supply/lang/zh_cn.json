@@ -1,0 +1,27 @@
+{
+  "container.airdrop_supply.airdrop_supply": "空投补给箱",
+  "notification.airdrop_supply.airdrop_arrive": " §c❄ §3凛冬电台 §c❄ \n§7援助空投即将投放\n§7请各位幸存者在1天内前往坐标为\n§7x= %1$s §7y= %2$s §7z= %3$s",
+  "notification.airdrop_supply.airdrop_crash": " §c❄ §3凛冬电台 §c❄ \n§7由于不明原因 %1$s 的空投补给箱在运送途中丢失",
+  "notification.airdrop_supply.airdrop_invalidate": " §c❄ §3凛冬电台 §c❄\n§7 PDC 派发给 §a%4$s §7的空投 \n§7由于空投滞留时间过长，空投物资已被其他幸存者拾取!",
+  "notification.airdrop_supply.airdrop_summoned": " §c❄ §3凛冬电台 §c❄\n§7%1$s 呼叫了空投补给箱。请耐心等待。",
+  "notification.airdrop_supply.airdrop_summoned_invalid_dimension": "§7%1$s 尝试在无法进行空投的维度呼叫补给箱。",
+  "notification.airdrop_supply.airdrop_location_set": "§7%3$s 将补给箱空投位置固定在了\n§7 x= %1$s §7z= %2$s",
+  "notification.airdrop_supply.airdrop_location_set_invalid_dimension": "§7%1$s 尝试在无法投递空投的维度设定固定空投位置。",
+  "notification.airdrop_supply.airdrop_location_unset": "§7%1$s 取消了固定空投位置。",
+  "notification.airdrop_supply.airdrop_location_unset_invalid_dimension": "§7无法在该维度取消固定空投位置。",
+  "notification.airdrop_supply.map_point": "§e已经空投的位置标记在小地图上。",
+
+  "command.airdrop_supply.error_dimension": "§c无法在该维度生成空投补给箱。",
+
+  "item.airdrop_supply.airdrop_pager": "空投补给箱呼叫器",
+  "item.airdrop_supply.airdrop_location_fixer": "空投坐标定位装置",
+  "item.airdrop_supply.airdrop_location_canceller": "空投位置取消装置",
+  "block.airdrop_supply.airdrop_supply": "空投补给箱",
+  "creativetab.airdrop_supply.airdrop_supply": "空投供应",
+
+  "airdrop_supply.configuration.title": "空投补给箱 基础设置",
+  "airdrop_supply.configuration.airdrop_center_mode": "空投中心位置参考模式",
+  "airdrop_supply.configuration.custom_center_x": "自定义中心 X 坐标",
+  "airdrop_supply.configuration.custom_center_z": "自定义中心 Z 坐标",
+  "airdrop_supply.configuration.broadcast_coordinates": "是否向所有幸存者广播空投坐标"
+}

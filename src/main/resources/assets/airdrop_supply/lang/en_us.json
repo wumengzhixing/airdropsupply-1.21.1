@@ -1,0 +1,27 @@
+{
+  "container.airdrop_supply.airdrop_supply": "Airdrop Supply Crate",
+  "notification.airdrop_supply.airdrop_arrive": " §c❄ §3Winter Radio §c❄ \n§7Aid airdrop is about to be deployed.\n§7Survivors, please head to the coordinates within 1 day:\n§7x= %1$s §7y= %2$s §7z= %3$s",
+  "notification.airdrop_supply.airdrop_crash": " §c❄ §3Winter Radio §c❄ \n§7For unknown reasons, %1$s's airdrop supply crate was lost in transit.",
+  "notification.airdrop_supply.airdrop_invalidate": " §c❄ §3Winter Radio §c❄\n§7The airdrop dispatched to §a%4$s§7 by PDC\n§7has been scavenged by other survivors due to excessive delay!",
+  "notification.airdrop_supply.airdrop_summoned": " §c❄ §3Winter Radio §c❄\n§7%1$s has called for an airdrop supply crate. Please stand by.",
+  "notification.airdrop_supply.airdrop_summoned_invalid_dimension": "§7%1$s tried to summon an airdrop in an invalid dimension.",
+  "notification.airdrop_supply.airdrop_location_set": "§7%3$s fixed the airdrop location at\n§7 x= %1$s §7z= %2$s",
+  "notification.airdrop_supply.airdrop_location_set_invalid_dimension": "§7%1$s tried to set a fixed airdrop location in an invalid dimension.",
+  "notification.airdrop_supply.airdrop_location_unset": "§7%1$s canceled the fixed airdrop location.",
+  "notification.airdrop_supply.airdrop_location_unset_invalid_dimension": "§7Cannot cancel the fixed airdrop location in this dimension.",
+  "notification.airdrop_supply.map_point": "§eThe airdrop location has been marked on your minimap.",
+
+  "command.airdrop_supply.error_dimension": "§cUnable to create an airdrop in this dimension.",
+
+  "item.airdrop_supply.airdrop_pager": "Airdrop Pager",
+  "item.airdrop_supply.airdrop_location_fixer": "Airdrop Location Fixer",
+  "item.airdrop_supply.airdrop_location_canceller": "Airdrop Location Canceller",
+  "block.airdrop_supply.airdrop_supply": "Airdrop Supply Crate",
+  "creativetab.airdrop_supply.airdrop_supply": "Airdrop Supply",
+
+  "airdrop_supply.configuration.title": "Airdrop Supply General Settings",
+  "airdrop_supply.configuration.airdrop_center_mode": "Airdrop Center Location Mode",
+  "airdrop_supply.configuration.custom_center_x": "Custom Center X Coordinate",
+  "airdrop_supply.configuration.custom_center_z": "Custom Center Z Coordinate",
+  "airdrop_supply.configuration.broadcast_coordinates": "Broadcast Coordinates to All Players"
+}

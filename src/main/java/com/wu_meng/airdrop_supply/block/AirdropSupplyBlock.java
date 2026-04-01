@@ -38,7 +38,6 @@ import java.util.Objects;
 public class AirdropSupplyBlock extends HorizontalDirectionalBlock implements EntityBlock {
 
     public static final MapCodec<AirdropSupplyBlock> CODEC = BlockBehaviour.simpleCodec(AirdropSupplyBlock::new);
-    // 统一命名为 SHAPE，用于碰撞和视觉轮廓
     private static final VoxelShape SHAPE = Block.box(0.0D, 0.0D, 0.0D, 16.0D, 10.0D, 16.0D);
     public static final EnumProperty<Type> TYPE = EnumProperty.create("type",Type.class);
     public static final EnumProperty<CaseLevel> LEVEL = EnumProperty.create("level",CaseLevel.class);
@@ -117,13 +116,11 @@ public class AirdropSupplyBlock extends HorizontalDirectionalBlock implements En
         }
     }
 
-    // 重写获取碰撞箱方法
     @Override
     public VoxelShape getCollisionShape(@Nonnull BlockState pState, @Nonnull BlockGetter pLevel, @Nonnull BlockPos pPos, @Nonnull CollisionContext pContext) {
         return SHAPE;
     }
 
-    // 新增：重写获取视觉轮廓选取框方法，解决视觉黑边与碰撞体不一致的问题
     @Override
     public VoxelShape getShape(@Nonnull BlockState pState, @Nonnull BlockGetter pLevel, @Nonnull BlockPos pPos, @Nonnull CollisionContext pContext) {
         return SHAPE;

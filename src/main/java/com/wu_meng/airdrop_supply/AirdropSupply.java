@@ -1,8 +1,8 @@
 package com.wu_meng.airdrop_supply;
 
 import com.wu_meng.airdrop_supply.block.AirdropSupplyBlock;
+import com.wu_meng.airdrop_supply.client.ModClientEvents;
 import com.wu_meng.airdrop_supply.client.camera.AirdropOpenCameraController;
-import com.wu_meng.airdrop_supply.client.ModClientEvents; // 【新增导入：客户端事件】
 import com.wu_meng.airdrop_supply.command.CallingAirdropCommand;
 import com.wu_meng.airdrop_supply.entry.ModAttachments;
 import com.wu_meng.airdrop_supply.entry.ModBlockEntities;
@@ -18,12 +18,12 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.storage.loot.LootTable;
-import net.neoforged.api.distmarker.Dist; // 【新增导入：物理端判断】
+import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.loading.FMLEnvironment; // 【新增导入：物理端判断】
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -33,6 +33,7 @@ import javax.annotation.Nonnull;
 import java.util.Objects;
 
 @Mod(AirdropSupply.MOD_ID)
+@SuppressWarnings("null")
 public class AirdropSupply
 {
     public static final String MOD_ID = "airdropsupply";
@@ -58,8 +59,6 @@ public class AirdropSupply
         gameEventBus.addListener(AirdropSupply::registerCommand);
         gameEventBus.addListener(AirdropSupply::onAddReloadListeners);
 
-        // 【最核心的一步】：安全地注册客户端渲染器
-        // 判断当前物理端是否为客户端（CLIENT），如果是，就把 ModClientEvents 里的方法添加进事件总线
         if (FMLEnvironment.dist == Dist.CLIENT) {
             safeModEventBus.addListener(ModClientEvents::onRegisterRenderers);
             gameEventBus.addListener(AirdropOpenCameraController::onComputeCameraAngles);
@@ -74,34 +73,34 @@ public class AirdropSupply
         event.addListener(AmbushManager.INSTANCE);
     }
 
-    public static class LootTables{
+    public static final class LootTables {
+        private LootTables() {}
 
-        public static ResourceKey<LootTable> calculateLootTable(AirdropSupplyBlock.Type type, AirdropSupplyBlock.CaseLevel caseLevel){
-            if(type== AirdropSupplyBlock.Type.NORMAL){
-                return switch (caseLevel){
+        private static final ResourceKey<LootTable> BN = lootTableKey("ammo_basic");
+        private static final ResourceKey<LootTable> MN = lootTableKey("ammo_medium");
+        private static final ResourceKey<LootTable> AN = lootTableKey("ammo_advanced");
+        private static final ResourceKey<LootTable> BM = lootTableKey("medic_basic");
+        private static final ResourceKey<LootTable> MM = lootTableKey("medic_medium");
+        private static final ResourceKey<LootTable> AM = lootTableKey("medic_advanced");
+
+        public static ResourceKey<LootTable> calculateLootTable(AirdropSupplyBlock.Type type, AirdropSupplyBlock.CaseLevel caseLevel) {
+            return switch (type) {
+                case NORMAL -> switch (caseLevel) {
                     case BASIC -> BN;
                     case MEDIUM -> MN;
                     case ADVANCED -> AN;
                 };
-            } else{
-                return switch (caseLevel){
+                case MEDIC -> switch (caseLevel) {
                     case BASIC -> BM;
                     case MEDIUM -> MM;
                     case ADVANCED -> AM;
                 };
-            }
+            };
         }
-
-        static final ResourceKey<LootTable> BN = lootTableKey("ammo_basic");
-        static final ResourceKey<LootTable> MN = lootTableKey("ammo_medium");
-        static final ResourceKey<LootTable> AN = lootTableKey("ammo_advanced");
-        static final ResourceKey<LootTable> BM = lootTableKey("medic_basic");
-        static final ResourceKey<LootTable> MM = lootTableKey("medic_medium");
-        static final ResourceKey<LootTable> AM = lootTableKey("medic_advanced");
 
         private static ResourceKey<LootTable> lootTableKey(@Nonnull String path) {
             return ResourceKey.create(
-                    Objects.requireNonNull(Registries.LOOT_TABLE, "Registries.LOOT_TABLE"),
+                    Registries.LOOT_TABLE,
                     Objects.requireNonNull(ResourceLocation.fromNamespaceAndPath(CONTENT_ID, path), "loot table id")
             );
         }

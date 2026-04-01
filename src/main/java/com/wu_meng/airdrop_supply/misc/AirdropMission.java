@@ -86,10 +86,11 @@ public class AirdropMission {
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos(x, level.getMaxBuildHeight() - 1, z);
         while (pos.getY() > level.getMinBuildHeight() + 1) {
             BlockState currentState = level.getBlockState(pos);
-            BlockState belowState = level.getBlockState(pos.below());
+            BlockPos belowPos = pos.below();
+            BlockState belowState = level.getBlockState(belowPos);
 
             if ((currentState.isAir() || currentState.is(BlockTags.SNOW) || currentState.is(BlockTags.LEAVES) || currentState.canBeReplaced())
-                    && (belowState.isSolid() && !belowState.is(BlockTags.LEAVES))) {
+                    && (belowState.isFaceSturdy(level, belowPos, Direction.UP) && !belowState.is(BlockTags.LEAVES))) {
                 if (level.noCollision(ModBlocks.AIRDROP_SUPPLY.get().defaultBlockState().getShape(level, pos).bounds().move(pos))) {
                     return pos.immutable();
                 }

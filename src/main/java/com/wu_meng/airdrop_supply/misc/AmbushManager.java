@@ -20,13 +20,14 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+@SuppressWarnings("null")
 public class AmbushManager extends SimpleJsonResourceReloadListener {
     private static final Logger LOGGER = LogUtils.getLogger();
     private static final Gson GSON = new GsonBuilder().create();
@@ -39,7 +40,7 @@ public class AmbushManager extends SimpleJsonResourceReloadListener {
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> objectMap, @NotNull ResourceManager resourceManager, @NotNull ProfilerFiller profilerFiller) {
+    protected void apply(@Nonnull Map<ResourceLocation, JsonElement> objectMap, @Nonnull ResourceManager resourceManager, @Nonnull ProfilerFiller profilerFiller) {
         double[] spawnChanceHolder = new double[] {0.05};
         var entriesBuilder = new java.util.ArrayList<AmbushEntry>();
 
@@ -85,6 +86,7 @@ public class AmbushManager extends SimpleJsonResourceReloadListener {
         POOL.set(new AmbushPool(spawnChanceHolder[0], List.copyOf(entriesBuilder)));
     }
 
+    @SuppressWarnings("deprecation")
     public static void trySpawnAmbush(Level level, BlockPos pos, AirdropSupplyBlock.Type crateType, AirdropSupplyBlock.CaseLevel crateLevel, int day) {
         if (!(level instanceof ServerLevel serverLevel)) {
             return;

@@ -13,6 +13,7 @@ import net.neoforged.neoforge.client.event.ViewportEvent;
 
 import javax.annotation.Nullable;
 
+@SuppressWarnings("null")
 public final class AirdropOpenCameraController {
     private static long activeUntilGameTime = -1L;
     @Nullable

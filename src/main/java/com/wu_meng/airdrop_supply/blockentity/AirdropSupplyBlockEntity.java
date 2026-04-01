@@ -139,6 +139,7 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
                 }
                 pBlockEntity.pendingOpenPlayerId = null;
                 pBlockEntity.pendingOpenAtGameTime = -1L;
+                pBlockEntity.setChanged();
             }
 
             if (pLevel.getGameTime() >= pBlockEntity.despawnTime) {

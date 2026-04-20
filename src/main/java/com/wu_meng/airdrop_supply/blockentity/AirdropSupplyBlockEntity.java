@@ -77,6 +77,9 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
 
         @Override
         protected void openerCountChanged(@Nonnull Level pLevel, @Nonnull BlockPos pPos, @Nonnull BlockState pState, int pCount, int pOpenCount) {
+            if (!pLevel.isClientSide && pOpenCount <= 0) {
+                closeCrate(pLevel, pPos, pState);
+            }
         }
 
         @Override
@@ -235,6 +238,7 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
         pTag.putLong("DespawnTime", this.despawnTime);
         pTag.putLong("TicksExisted", this.ticksExisted);
         pTag.putBoolean("IsOpen", this.isOpen);
+        pTag.putInt("OpenAnimationId", this.openAnimationId);
         if (!this.trySaveLootTable(pTag)) {
             ContainerHelper.saveAllItems(pTag, this.items, provider);
         }
@@ -250,20 +254,15 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
         if (pTag.contains("OpenAnimationId")) this.openAnimationId = pTag.getInt("OpenAnimationId");
 
         if (pTag.contains("IsOpen")) this.isOpen = pTag.getBoolean("IsOpen");
-        this.openAnimationStarted = this.isOpen;
+        this.openAnimationStarted = !this.isOpen;
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         if (!this.tryLoadLootTable(pTag)) {
             ContainerHelper.loadAllItems(pTag, this.items, provider);
         }
 
-        Level currentLevel = this.getLevel();
-        if (this.isOpen && currentLevel != null && currentLevel.isClientSide && this.openAnimationId > oldOpenAnimationId) {
+        // Camera animation is temporarily disabled.
+        if (this.isOpen && this.openAnimationId > oldOpenAnimationId) {
             this.openAnimationStarted = false;
-            try {
-                Class<?> handler = Class.forName("com.wu_meng.airdrop_supply.client.camera.AirdropOpenCameraController");
-                handler.getMethod("onAirdropOpened", BlockPos.class, BlockState.class).invoke(null, this.getBlockPos(), this.getBlockState());
-            } catch (Exception ignored) {
-            }
         }
     }
 
@@ -322,6 +321,18 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
         if (!this.remove && !pPlayer.isSpectator()) {
             this.openersCounter.decrementOpeners(pPlayer, Objects.requireNonNull(this.getLevel(), "level"), this.getBlockPos(), this.getBlockState());
         }
+    }
+
+    private void closeCrate(@Nonnull Level level, @Nonnull BlockPos pos, @Nonnull BlockState state) {
+        if (!this.isOpen) {
+            return;
+        }
+        this.isOpen = false;
+        this.openAnimationStarted = false;
+        this.pendingOpenPlayerId = null;
+        this.pendingOpenAtGameTime = -1L;
+        this.setChanged();
+        level.sendBlockUpdated(pos, state, state, 3);
     }
 
     private void playSound(@Nonnull BlockState pState, @Nonnull SoundEvent pSound) {

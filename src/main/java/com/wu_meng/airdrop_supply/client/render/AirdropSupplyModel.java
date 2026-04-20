@@ -18,7 +18,8 @@ public class AirdropSupplyModel extends GeoModel<AirdropSupplyBlockEntity> {
     public ResourceLocation getTextureResource(AirdropSupplyBlockEntity animatable) {
         String level = getLevelName(animatable);
         String type = getTypeName(animatable);
-        return ResourceLocation.fromNamespaceAndPath(AirdropSupply.CONTENT_ID, "textures/block/" + level + "_" + type + ".png");
+//        return ResourceLocation.fromNamespaceAndPath(AirdropSupply.CONTENT_ID, "textures/block/" + level + "_" + type + ".png");
+        return ResourceLocation.fromNamespaceAndPath(AirdropSupply.CONTENT_ID, "textures/block/medium_case.png");
     }
 
     @Override

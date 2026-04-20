@@ -2,7 +2,6 @@ package com.wu_meng.airdrop_supply;
 
 import com.wu_meng.airdrop_supply.block.AirdropSupplyBlock;
 import com.wu_meng.airdrop_supply.client.ModClientEvents;
-import com.wu_meng.airdrop_supply.client.camera.AirdropOpenCameraController;
 import com.wu_meng.airdrop_supply.command.CallingAirdropCommand;
 import com.wu_meng.airdrop_supply.entry.ModAttachments;
 import com.wu_meng.airdrop_supply.entry.ModBlockEntities;
@@ -61,7 +60,8 @@ public class AirdropSupply
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             safeModEventBus.addListener(ModClientEvents::onRegisterRenderers);
-            gameEventBus.addListener(AirdropOpenCameraController::onComputeCameraAngles);
+            // Temporary: disable open-crate camera animation hook.
+            // gameEventBus.addListener(AirdropOpenCameraController::onComputeCameraAngles);
         }
     }
 

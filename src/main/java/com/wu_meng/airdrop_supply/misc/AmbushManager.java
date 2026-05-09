@@ -20,6 +20,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.levelgen.Heightmap;
 import org.slf4j.Logger;
 
 import javax.annotation.Nonnull;
@@ -47,7 +48,7 @@ public class AmbushManager extends SimpleJsonResourceReloadListener {
         objectMap.forEach((location, element) -> {
             try {
                 JsonObject json = element.getAsJsonObject();
-                if (json.has("spawn_chance")) spawnChanceHolder[0] = json.get("spawn_chance").getAsDouble();
+                if (json.has("spawn_chance")) spawnChanceHolder[0] = Mth.clamp(json.get("spawn_chance").getAsDouble(), 0.0, 1.0);
 
                 json.getAsJsonArray("mobs").forEach(mobElement -> {
                     JsonObject mobJson = mobElement.getAsJsonObject();
@@ -56,9 +57,19 @@ public class AmbushManager extends SimpleJsonResourceReloadListener {
                     int multipleWeight = mobJson.has("multiple_weight") ? mobJson.get("multiple_weight").getAsInt() : 0;
                     int minCount = mobJson.has("min") ? mobJson.get("min").getAsInt() : 1;
                     int maxCount = mobJson.has("max") ? mobJson.get("max").getAsInt() : 1;
+                    if (maxCount < minCount) {
+                        int tmp = minCount;
+                        minCount = maxCount;
+                        maxCount = tmp;
+                    }
 
                     int minDay = mobJson.has("min_day") ? mobJson.get("min_day").getAsInt() : 1;
                     int maxDay = mobJson.has("max_day") ? mobJson.get("max_day").getAsInt() : Integer.MAX_VALUE;
+                    if (maxDay < minDay) {
+                        int tmp = minDay;
+                        minDay = maxDay;
+                        maxDay = tmp;
+                    }
 
                     AirdropSupplyBlock.Type crateType = null;
                     if (mobJson.has("crate_type")) {
@@ -123,20 +134,38 @@ public class AmbushManager extends SimpleJsonResourceReloadListener {
             }
         }
 
-        if (selectedEntry != null) {
-            EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(selectedEntry.entityId);
-            int spawnCount = Mth.nextInt(random, selectedEntry.min, selectedEntry.max);
-            for (int i = 0; i < spawnCount; i++) {
-                double offsetX = (random.nextDouble() - 0.5) * 10;
-                double offsetZ = (random.nextDouble() - 0.5) * 10;
-                BlockPos spawnPos = BlockPos.containing(pos.getX() + offsetX, pos.getY() + 1, pos.getZ() + offsetZ);
+        if (selectedEntry == null) {
+            return;
+        }
+
+        if (!BuiltInRegistries.ENTITY_TYPE.containsKey(selectedEntry.entityId)) {
+            LOGGER.error("伏击实体类型不存在：{}", selectedEntry.entityId);
+            return;
+        }
+
+        EntityType<?> type = BuiltInRegistries.ENTITY_TYPE.get(selectedEntry.entityId);
+        int spawnCount = Mth.nextInt(random, selectedEntry.min, selectedEntry.max);
+        for (int i = 0; i < spawnCount; i++) {
+            try {
+                int spawnX = pos.getX() + Mth.nextInt(random, -10, 10);
+                int spawnZ = pos.getZ() + Mth.nextInt(random, -10, 10);
+                int spawnY = serverLevel.getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, spawnX, spawnZ);
+                BlockPos spawnPos = new BlockPos(spawnX, spawnY, spawnZ);
 
                 Entity entity = type.create(serverLevel);
-                if (entity instanceof Mob mob) {
-                    mob.setPos(spawnPos.getX(), spawnPos.getY(), spawnPos.getZ());
-                    mob.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnPos), MobSpawnType.EVENT, null);
-                    serverLevel.addFreshEntity(mob);
+                if (!(entity instanceof Mob mob)) {
+                    continue;
                 }
+
+                mob.moveTo(spawnX + 0.5, spawnY, spawnZ + 0.5, random.nextFloat() * 360.0F, 0.0F);
+                if (!mob.checkSpawnRules(serverLevel, MobSpawnType.EVENT) || !mob.checkSpawnObstruction(serverLevel)) {
+                    continue;
+                }
+
+                mob.finalizeSpawn(serverLevel, serverLevel.getCurrentDifficultyAt(spawnPos), MobSpawnType.EVENT, null);
+                serverLevel.addFreshEntity(mob);
+            } catch (Exception e) {
+                LOGGER.error("伏击刷怪失败：{}", selectedEntry.entityId, e);
             }
         }
     }

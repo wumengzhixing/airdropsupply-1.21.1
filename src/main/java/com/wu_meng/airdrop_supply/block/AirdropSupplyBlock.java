@@ -57,7 +57,8 @@ public class AirdropSupplyBlock extends HorizontalDirectionalBlock implements En
                 .strength(20F)
                 .sound(Objects.requireNonNull(SoundType.METAL, "SoundType.METAL"))
                 .explosionResistance(20)
-                .noOcclusion();
+                .noOcclusion()
+                .lightLevel(state -> 1);
     }
 
     @Override

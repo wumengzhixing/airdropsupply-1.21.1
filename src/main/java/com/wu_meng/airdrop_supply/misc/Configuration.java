@@ -11,8 +11,6 @@ public class Configuration {
     public static ModConfigSpec.IntValue CUSTOM_CENTER_Z;
     public static ModConfigSpec.BooleanValue BROADCAST_COORDINATES;
 
-    public static ModConfigSpec.IntValue OPEN_ANIMATION_DELAY_TICKS;
-
     public static ModConfigSpec.IntValue AIRDROP_SPREAD_RANGE;
     public static ModConfigSpec.IntValue AIRDROP_SPAWN_INTERVAL;
     public static ModConfigSpec.IntValue AIRDROP_DESPAWN_TIME;
@@ -68,11 +66,6 @@ public class Configuration {
                 "Broadcast airdrop arrival coordinates to all players on the server.",
                 "是否向全服所有玩家广播空投到达的坐标信息。"
         ).define("BROADCAST_COORDINATES", false);
-
-        OPEN_ANIMATION_DELAY_TICKS = builder.comment(
-                "Delay before opening container UI after right-clicking the crate (ticks).",
-                "右键空投箱后延迟多少 tick 再打开容器界面（用于等待开箱动画播放完）。"
-        ).defineInRange("OPEN_ANIMATION_DELAY_TICKS", 72, 0, 20 * 30);
 
         builder.pop();
 

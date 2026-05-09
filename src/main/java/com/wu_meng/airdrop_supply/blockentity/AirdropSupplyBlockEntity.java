@@ -1,6 +1,7 @@
 package com.wu_meng.airdrop_supply.blockentity;
 
 import com.wu_meng.airdrop_supply.block.AirdropSupplyBlock;
+import com.wu_meng.airdrop_supply.entry.ModAttachments;
 import com.wu_meng.airdrop_supply.entry.ModBlockEntities;
 import com.wu_meng.airdrop_supply.entry.ModSoundEvents;
 import com.wu_meng.airdrop_supply.misc.AmbushManager;
@@ -13,9 +14,6 @@ import net.minecraft.core.particles.DustColorTransitionOptions;
 import net.minecraft.core.particles.DustParticleOptions;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.Packet;
-import net.minecraft.network.protocol.game.ClientGamePacketListener;
-import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.Container;
@@ -34,22 +32,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.server.level.ServerPlayer;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
-import software.bernie.geckolib.animatable.GeoBlockEntity;
-import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.animation.*;
-import software.bernie.geckolib.util.GeckoLibUtil;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
-import java.util.UUID;
 
 @SuppressWarnings("null")
-public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity implements GeoBlockEntity {
-
-    private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private static final RawAnimation OPEN_ANIMATION = RawAnimation.begin().thenPlayAndHold("animation.airdrop.open");
+public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity {
 
     public static final DustColorTransitionOptions AIRDROP_SIGNAL = new DustColorTransitionOptions(
             new Vector3f(Objects.requireNonNull(Vec3.fromRGB24(14761505).toVector3f(), "signal color")),
@@ -59,12 +48,7 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
     private NonNullList<ItemStack> items = NonNullList.withSize(27, Objects.requireNonNull(ItemStack.EMPTY, "ItemStack.EMPTY"));
     private long despawnTime = Long.MAX_VALUE;
     public long ticksExisted = 0;
-    private boolean isOpen = false; // 客户端核心状态
-    private boolean openAnimationStarted = false;
-    private int openAnimationId = 0;
-    @Nullable
-    private UUID pendingOpenPlayerId = null;
-    private long pendingOpenAtGameTime = -1L;
+    private boolean isOpen = false;
 
     private final ContainerOpenersCounter openersCounter = new ContainerOpenersCounter() {
         @Override
@@ -129,19 +113,6 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
                 pBlockEntity.openersCounter.recheckOpeners(pLevel, pPos, pState);
             }
 
-            if (pBlockEntity.pendingOpenPlayerId != null && pLevel.getGameTime() >= pBlockEntity.pendingOpenAtGameTime) {
-                var server = pLevel.getServer();
-                if (server != null) {
-                    ServerPlayer player = server.getPlayerList().getPlayer(pBlockEntity.pendingOpenPlayerId);
-                    if (player != null && player.level() == pLevel && player.blockPosition().closerThan(pPos, 8.0)) {
-                        player.openMenu(pBlockEntity);
-                    }
-                }
-                pBlockEntity.pendingOpenPlayerId = null;
-                pBlockEntity.pendingOpenAtGameTime = -1L;
-                pBlockEntity.setChanged();
-            }
-
             if (pLevel.getGameTime() >= pBlockEntity.despawnTime) {
                 pBlockEntity.items.clear();
                 pLevel.setBlockAndUpdate(pPos, Blocks.AIR.defaultBlockState());
@@ -151,7 +122,7 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
                 pLevel.setBlockAndUpdate(pPos, Blocks.AIR.defaultBlockState());
             }
 
-            if (pBlockEntity.lootTable != null) {
+            if (!pBlockEntity.isOpen && pBlockEntity.lootTable != null) {
                 int startAfterTicks = Math.max(0, Configuration.AMBUSH_START_AFTER_TICKS.get());
                 int intervalTicks = Math.max(1, Configuration.AMBUSH_ATTEMPT_INTERVAL_TICKS.get());
                 if (pBlockEntity.ticksExisted > startAfterTicks && pBlockEntity.ticksExisted % intervalTicks == 0) {
@@ -160,33 +131,6 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
                 }
             }
         }
-    }
-
-    // ============================================
-    // GeckoLib 动画控制器配置
-    // ============================================
-    @Override
-    public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 0, this::predicate));
-    }
-
-    private PlayState predicate(AnimationState<AirdropSupplyBlockEntity> state) {
-        AnimationController<?> controller = state.getController();
-        if (this.isOpen) {
-            if (!this.openAnimationStarted) {
-                controller.forceAnimationReset();
-                controller.setAnimation(OPEN_ANIMATION);
-                this.openAnimationStarted = true;
-            }
-            return PlayState.CONTINUE;
-        } else {
-            return PlayState.STOP;
-        }
-    }
-
-    @Override
-    public AnimatableInstanceCache getAnimatableInstanceCache() {
-        return this.cache;
     }
 
     // ============================================
@@ -210,23 +154,20 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
             return;
         }
         this.isOpen = true;
-        this.openAnimationStarted = false;
-        this.openAnimationId++;
 
         if (opener instanceof ServerPlayer serverPlayer) {
-            int delayTicks = Math.max(0, Configuration.OPEN_ANIMATION_DELAY_TICKS.get());
-            if (delayTicks == 0) {
-                serverPlayer.openMenu(this);
-            } else {
-                this.pendingOpenPlayerId = serverPlayer.getUUID();
-                this.pendingOpenAtGameTime = currentLevel.getGameTime() + delayTicks;
+            var data = serverPlayer.getData(ModAttachments.AIRDROP_PLAYER_DATA);
+            var it = data.airdropDespawnInfo.iterator();
+            while (it.hasNext()) {
+                var entry = it.next();
+                if (this.getBlockPos().equals(entry.getSecond())) {
+                    it.remove();
+                }
             }
+            serverPlayer.openMenu(this);
         }
 
         this.setChanged();
-        BlockPos pos = this.getBlockPos();
-        BlockState state = this.getBlockState();
-        currentLevel.sendBlockUpdated(pos, state, state, 3);
     }
 
     @Override
@@ -246,40 +187,11 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
         if (pTag.contains("DespawnTime")) this.despawnTime = pTag.getLong("DespawnTime");
         if (pTag.contains("TicksExisted")) this.ticksExisted = pTag.getLong("TicksExisted");
 
-        int oldOpenAnimationId = this.openAnimationId;
-        if (pTag.contains("OpenAnimationId")) this.openAnimationId = pTag.getInt("OpenAnimationId");
-
         if (pTag.contains("IsOpen")) this.isOpen = pTag.getBoolean("IsOpen");
-        this.openAnimationStarted = this.isOpen;
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         if (!this.tryLoadLootTable(pTag)) {
             ContainerHelper.loadAllItems(pTag, this.items, provider);
         }
-
-        Level currentLevel = this.getLevel();
-        if (this.isOpen && currentLevel != null && currentLevel.isClientSide && this.openAnimationId > oldOpenAnimationId) {
-            this.openAnimationStarted = false;
-            try {
-                Class<?> handler = Class.forName("com.wu_meng.airdrop_supply.client.camera.AirdropOpenCameraController");
-                handler.getMethod("onAirdropOpened", BlockPos.class, BlockState.class).invoke(null, this.getBlockPos(), this.getBlockState());
-            } catch (Exception ignored) {
-            }
-        }
-    }
-
-    @Nullable
-    @Override
-    public Packet<ClientGamePacketListener> getUpdatePacket() {
-        return ClientboundBlockEntityDataPacket.create(this);
-    }
-
-    @Override
-    public @NotNull CompoundTag getUpdateTag(HolderLookup.@NotNull Provider pRegistries) {
-        // 【关键修复】：必须调用 super.getUpdateTag 获取 xyz 等基础坐标数据，否则客户端会直接把包丢弃！
-        CompoundTag tag = super.getUpdateTag(pRegistries);
-        tag.putBoolean("IsOpen", this.isOpen);
-        tag.putInt("OpenAnimationId", this.openAnimationId);
-        return tag;
     }
 
     // ============================================

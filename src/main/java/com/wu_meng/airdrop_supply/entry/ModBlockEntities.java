@@ -10,7 +10,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 @SuppressWarnings("null")
 public class ModBlockEntities {
 
-    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, AirdropSupply.CONTENT_ID);
+    public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, AirdropSupply.MOD_ID);
     public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AirdropSupplyBlockEntity>> AIRDROP_SUPPLY = BLOCK_ENTITIES.register("airdrop_supply", () ->
             BlockEntityType.Builder.of(AirdropSupplyBlockEntity::new, ModBlocks.AIRDROP_SUPPLY.get()).build(null));
 

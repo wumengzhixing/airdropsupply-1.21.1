@@ -1,8 +1,6 @@
 package com.wu_meng.airdrop_supply;
 
 import com.wu_meng.airdrop_supply.block.AirdropSupplyBlock;
-import com.wu_meng.airdrop_supply.client.ModClientEvents;
-import com.wu_meng.airdrop_supply.client.camera.AirdropOpenCameraController;
 import com.wu_meng.airdrop_supply.command.CallingAirdropCommand;
 import com.wu_meng.airdrop_supply.entry.ModAttachments;
 import com.wu_meng.airdrop_supply.entry.ModBlockEntities;
@@ -18,12 +16,10 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.storage.loot.LootTable;
-import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -36,8 +32,7 @@ import java.util.Objects;
 @SuppressWarnings("null")
 public class AirdropSupply
 {
-    public static final String MOD_ID = "airdropsupply";
-    public static final String CONTENT_ID = "airdrop_supply";
+    public static final String MOD_ID = "airdrop_supply";
     public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
 
     public AirdropSupply(@Nonnull IEventBus modEventBus, @Nonnull ModContainer modContainer)
@@ -58,11 +53,6 @@ public class AirdropSupply
         AirdropManager.register(gameEventBus);
         gameEventBus.addListener(AirdropSupply::registerCommand);
         gameEventBus.addListener(AirdropSupply::onAddReloadListeners);
-
-        if (FMLEnvironment.dist == Dist.CLIENT) {
-            safeModEventBus.addListener(ModClientEvents::onRegisterRenderers);
-            gameEventBus.addListener(AirdropOpenCameraController::onComputeCameraAngles);
-        }
     }
 
     public static void registerCommand(RegisterCommandsEvent event) {
@@ -101,7 +91,7 @@ public class AirdropSupply
         private static ResourceKey<LootTable> lootTableKey(@Nonnull String path) {
             return ResourceKey.create(
                     Registries.LOOT_TABLE,
-                    Objects.requireNonNull(ResourceLocation.fromNamespaceAndPath(CONTENT_ID, path), "loot table id")
+                    Objects.requireNonNull(ResourceLocation.fromNamespaceAndPath(MOD_ID, path), "loot table id")
             );
         }
     }

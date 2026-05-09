@@ -6,6 +6,7 @@
 		"2": "airdrop_supply:block/advanced_case_3",
 		"particle": "airdrop_supply:block/advanced_case"
 	},
+	"render_type": "cutout",
 	"elements": [
 		{
 			"from": [21.1, 0.25, 1.175],

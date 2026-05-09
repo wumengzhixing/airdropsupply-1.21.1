@@ -10,10 +10,10 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 @SuppressWarnings("null")
 public class ModSoundEvents {
 
-    public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(Registries.SOUND_EVENT, AirdropSupply.CONTENT_ID);
+    public static final DeferredRegister<SoundEvent> SOUNDS = DeferredRegister.create(Registries.SOUND_EVENT, AirdropSupply.MOD_ID);
     public static final DeferredHolder<SoundEvent, SoundEvent> OPEN_AIRDROP = register("open_airdrop");
 
     private static DeferredHolder<SoundEvent, SoundEvent> register(String name) {
-        return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(AirdropSupply.CONTENT_ID, name)));
+        return SOUNDS.register(name, () -> SoundEvent.createVariableRangeEvent(ResourceLocation.fromNamespaceAndPath(AirdropSupply.MOD_ID, name)));
     }
 }

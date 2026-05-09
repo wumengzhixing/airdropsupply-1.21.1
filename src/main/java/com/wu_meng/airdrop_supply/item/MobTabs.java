@@ -11,7 +11,7 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 
 @SuppressWarnings("null")
 public class MobTabs {
-    public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, AirdropSupply.CONTENT_ID);
+    public static final DeferredRegister<CreativeModeTab> TABS = DeferredRegister.create(Registries.CREATIVE_MODE_TAB, AirdropSupply.MOD_ID);
     // 工具
     public static final DeferredHolder<CreativeModeTab, CreativeModeTab> VENDING_MACHINE = TABS.register("vending_machine",
             () -> CreativeModeTab

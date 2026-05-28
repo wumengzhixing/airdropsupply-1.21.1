@@ -70,7 +70,6 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
     private final ContainerOpenersCounter openersCounter = new ContainerOpenersCounter() {
         @Override
         protected void onOpen(@Nonnull Level pLevel, @Nonnull BlockPos blockPos, @Nonnull BlockState pState) {
-            playSound(pState, ModSoundEvents.OPEN_AIRDROP.get());
         }
 
         @Override
@@ -188,6 +187,8 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
             }
         } else if (this.getBlockState().getValue(AirdropSupplyBlock.LEVEL) == AirdropSupplyBlock.CaseLevel.ADVANCED) {
             controller.setAnimation(ROTATE_ANIMATION);
+        } else {
+            return PlayState.STOP;
         }
         return PlayState.CONTINUE;
     }
@@ -235,6 +236,7 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
         BlockPos pos = this.getBlockPos();
         BlockState state = this.getBlockState();
         currentLevel.sendBlockUpdated(pos, state, state, 3);
+        playSound(state, ModSoundEvents.OPEN_AIRDROP.get());
     }
 
     @Override

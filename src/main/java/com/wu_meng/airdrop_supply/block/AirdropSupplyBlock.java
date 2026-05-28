@@ -6,6 +6,9 @@ import com.wu_meng.airdrop_supply.entry.ModBlockEntities;
 import com.wu_meng.airdrop_supply.misc.Configuration;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Vec3i;
+import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.StringRepresentable;
 import net.minecraft.world.Container;
 import net.minecraft.world.Containers;
@@ -102,10 +105,10 @@ public class AirdropSupplyBlock extends HorizontalDirectionalBlock implements En
                 }
                 return InteractionResult.CONSUME;
             }
-            if (blockentity instanceof MenuProvider menuProvider) {
-                pPlayer.openMenu(menuProvider);
-                return InteractionResult.CONSUME;
-            }
+//            if (blockentity instanceof MenuProvider menuProvider) {
+//                pPlayer.openMenu(menuProvider);
+//                return InteractionResult.CONSUME;
+//            }
             return InteractionResult.CONSUME;
         }
     }

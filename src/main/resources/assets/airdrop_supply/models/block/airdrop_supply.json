@@ -1,0 +1,6 @@
+{
+  "parent": "builtin/entity",
+  "textures": {
+    "particle": "airdrop_supply:block/ammo_basic"
+  }
+}

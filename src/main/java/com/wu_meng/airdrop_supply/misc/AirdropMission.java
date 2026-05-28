@@ -117,7 +117,7 @@ public class AirdropMission {
             return;
         }
 
-        AirdropSupplyBlock.Type type = (result < noneWeight + ammoWeight) ? AirdropSupplyBlock.Type.NORMAL : AirdropSupplyBlock.Type.MEDIC;
+        AirdropSupplyBlock.Type type = (result < noneWeight + ammoWeight) ? AirdropSupplyBlock.Type.AMMO : AirdropSupplyBlock.Type.MEDIC;
         int day = (int) (overworld.getDayTime() / 24000) + 1;
         AirdropSupplyBlock.CaseLevel caseLevel = calculateCaseLevel(player, day);
 

@@ -76,7 +76,7 @@ public class AirdropPagerItem extends Item {
                 var isAmmo = result < ammoWeight;
                 var fallingCrate = FallingBlockEntity.fall(level, dropPos, isAmmo ?
                         ModBlocks.AIRDROP_SUPPLY.get().defaultBlockState()
-                                .setValue(AirdropSupplyBlock.TYPE, AirdropSupplyBlock.Type.NORMAL)
+                                .setValue(AirdropSupplyBlock.TYPE, AirdropSupplyBlock.Type.AMMO)
                                 .setValue(HorizontalDirectionalBlock.FACING, Direction.Plane.HORIZONTAL.getRandomDirection(level.getRandom()))
                                 .setValue(AirdropSupplyBlock.LEVEL, caseLevel) :
                         ModBlocks.AIRDROP_SUPPLY.get().defaultBlockState()
@@ -86,7 +86,7 @@ public class AirdropPagerItem extends Item {
 
                 CompoundTag blockData = new CompoundTag();
                 fallingCrate.blockData = blockData;
-                blockData.putString("LootTable", AirdropSupply.LootTables.calculateLootTable(isAmmo ? AirdropSupplyBlock.Type.NORMAL : AirdropSupplyBlock.Type.MEDIC, caseLevel).location().toString());
+                blockData.putString("LootTable", AirdropSupply.LootTables.calculateLootTable(isAmmo ? AirdropSupplyBlock.Type.AMMO : AirdropSupplyBlock.Type.MEDIC, caseLevel).location().toString());
                 blockData.putLong("LootTableSeed", level.random.nextLong());
 
                 blockData.putLong("DespawnTime", overworld.getGameTime() + Configuration.AIRDROP_DESPAWN_TIME.get());

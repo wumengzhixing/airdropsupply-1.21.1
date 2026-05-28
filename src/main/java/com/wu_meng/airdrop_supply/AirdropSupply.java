@@ -85,7 +85,7 @@ public class AirdropSupply
 
         public static ResourceKey<LootTable> calculateLootTable(AirdropSupplyBlock.Type type, AirdropSupplyBlock.CaseLevel caseLevel) {
             return switch (type) {
-                case NORMAL -> switch (caseLevel) {
+                case AMMO -> switch (caseLevel) {
                     case BASIC -> BN;
                     case MEDIUM -> MN;
                     case ADVANCED -> AN;

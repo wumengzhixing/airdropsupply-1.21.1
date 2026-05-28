@@ -11,20 +11,18 @@ public class AirdropSupplyModel extends GeoModel<AirdropSupplyBlockEntity> {
 
     @Override
     public ResourceLocation getModelResource(AirdropSupplyBlockEntity animatable) {
-        return ResourceLocation.fromNamespaceAndPath(AirdropSupply.CONTENT_ID, "geo/medium.geo.json");
+        return ResourceLocation.fromNamespaceAndPath(AirdropSupply.CONTENT_ID, "geo/%s_%s.geo.json".formatted(getTypeName(animatable), getLevelName(animatable)));
     }
 
     @Override
     public ResourceLocation getTextureResource(AirdropSupplyBlockEntity animatable) {
-        String level = getLevelName(animatable);
-        String type = getTypeName(animatable);
 //        return ResourceLocation.fromNamespaceAndPath(AirdropSupply.CONTENT_ID, "textures/block/" + level + "_" + type + ".png");
-        return ResourceLocation.fromNamespaceAndPath(AirdropSupply.CONTENT_ID, "textures/block/medium_case.png");
+        return ResourceLocation.fromNamespaceAndPath(AirdropSupply.CONTENT_ID, "textures/block/%s_%s.png".formatted(getTypeName(animatable), getLevelName(animatable)));
     }
 
     @Override
     public ResourceLocation getAnimationResource(AirdropSupplyBlockEntity animatable) {
-        return ResourceLocation.fromNamespaceAndPath(AirdropSupply.CONTENT_ID, "animations/medium.animation.json");
+        return ResourceLocation.fromNamespaceAndPath(AirdropSupply.CONTENT_ID, "animations/%s_%s.animation.json".formatted(getTypeName(animatable), getLevelName(animatable)));
     }
 
     private String getLevelName(AirdropSupplyBlockEntity entity) {

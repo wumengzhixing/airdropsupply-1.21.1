@@ -49,7 +49,7 @@ import java.util.UUID;
 public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity implements GeoBlockEntity {
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private static final RawAnimation OPEN_ANIMATION = RawAnimation.begin().thenPlayAndHold("animation.airdrop.open");
+    private static final RawAnimation OPEN_ANIMATION = RawAnimation.begin();
 
     public static final DustColorTransitionOptions AIRDROP_SIGNAL = new DustColorTransitionOptions(
             new Vector3f(Objects.requireNonNull(Vec3.fromRGB24(14761505).toVector3f(), "signal color")),
@@ -178,7 +178,7 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
         if (this.isOpen) {
             if (!this.openAnimationStarted) {
                 controller.forceAnimationReset();
-                controller.setAnimation(OPEN_ANIMATION);
+                controller.setAnimation(OPEN_ANIMATION.thenPlayAndHold("animation"));
                 this.openAnimationStarted = true;
             }
             return PlayState.CONTINUE;

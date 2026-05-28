@@ -139,7 +139,7 @@ public class AirdropSupplyBlock extends HorizontalDirectionalBlock implements En
     }
 
     public enum Type implements StringRepresentable {
-        NORMAL,
+        AMMO,
         MEDIC;
         @Override
         public @NotNull String getSerializedName() {

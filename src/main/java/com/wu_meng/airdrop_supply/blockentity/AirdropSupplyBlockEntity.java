@@ -49,7 +49,8 @@ import java.util.UUID;
 public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity implements GeoBlockEntity {
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private static final RawAnimation OPEN_ANIMATION = RawAnimation.begin();
+    private static final RawAnimation OPEN_ANIMATION = RawAnimation.begin().thenPlayAndHold("animation");
+    private static final RawAnimation ROTATE_ANIMATION = RawAnimation.begin().thenLoop("animation2");
 
     public static final DustColorTransitionOptions AIRDROP_SIGNAL = new DustColorTransitionOptions(
             new Vector3f(Objects.requireNonNull(Vec3.fromRGB24(14761505).toVector3f(), "signal color")),
@@ -73,19 +74,22 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
         }
 
         @Override
-        protected void onClose(@Nonnull Level pLevel, @Nonnull BlockPos pPos, @Nonnull BlockState pState) {}
+        protected void onClose(@Nonnull Level pLevel, @Nonnull BlockPos pPos, @Nonnull BlockState pState) {
+            if (!pLevel.isClientSide) {
+                closeCrate(pLevel, pPos, pState);
+            }
+        }
 
         @Override
         protected void openerCountChanged(@Nonnull Level pLevel, @Nonnull BlockPos pPos, @Nonnull BlockState pState, int pCount, int pOpenCount) {
             if (!pLevel.isClientSide && pOpenCount <= 0) {
-                closeCrate(pLevel, pPos, pState);
             }
         }
 
         @Override
         protected boolean isOwnContainer(@Nonnull Player player) {
             if (player.containerMenu instanceof ChestMenu) {
-                Container container = ((ChestMenu)player.containerMenu).getContainer();
+                Container container = ((ChestMenu) player.containerMenu).getContainer();
                 return container == AirdropSupplyBlockEntity.this;
             }
             return false;
@@ -175,16 +179,17 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
 
     private PlayState predicate(AnimationState<AirdropSupplyBlockEntity> state) {
         AnimationController<?> controller = state.getController();
+
         if (this.isOpen) {
             if (!this.openAnimationStarted) {
                 controller.forceAnimationReset();
-                controller.setAnimation(OPEN_ANIMATION.thenPlayAndHold("animation"));
+                controller.setAnimation(OPEN_ANIMATION);
                 this.openAnimationStarted = true;
             }
-            return PlayState.CONTINUE;
-        } else {
-            return PlayState.STOP;
+        } else if (this.getBlockState().getValue(AirdropSupplyBlock.LEVEL) == AirdropSupplyBlock.CaseLevel.ADVANCED) {
+            controller.setAnimation(ROTATE_ANIMATION);
         }
+        return PlayState.CONTINUE;
     }
 
     @Override
@@ -337,9 +342,9 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
 
     private void playSound(@Nonnull BlockState pState, @Nonnull SoundEvent pSound) {
         Vec3i vec3i = pState.getValue(AirdropSupplyBlock.FACING).getNormal();
-        double d0 = (double)this.worldPosition.getX() + 0.5D + (double)vec3i.getX() / 2.0D;
-        double d1 = (double)this.worldPosition.getY() + 0.5D + (double)vec3i.getY() / 2.0D;
-        double d2 = (double)this.worldPosition.getZ() + 0.5D + (double)vec3i.getZ() / 2.0D;
+        double d0 = (double) this.worldPosition.getX() + 0.5D + (double) vec3i.getX() / 2.0D;
+        double d1 = (double) this.worldPosition.getY() + 0.5D + (double) vec3i.getY() / 2.0D;
+        double d2 = (double) this.worldPosition.getZ() + 0.5D + (double) vec3i.getZ() / 2.0D;
         Level level = Objects.requireNonNull(this.level, "level");
         level.playSound(null, d0, d1, d2, pSound, SoundSource.BLOCKS, 3F, level.random.nextFloat() * 0.1F + 0.9F);
     }

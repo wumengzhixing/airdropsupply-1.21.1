@@ -72,7 +72,7 @@ public class Configuration {
         OPEN_ANIMATION_DELAY_TICKS = builder.comment(
                 "Delay before opening container UI after right-clicking the crate (ticks).",
                 "右键空投箱后延迟多少 tick 再打开容器界面（用于等待开箱动画播放完）。"
-        ).defineInRange("OPEN_ANIMATION_DELAY_TICKS", 72, 0, 20 * 30);
+        ).defineInRange("OPEN_ANIMATION_DELAY_TICKS", 24, 0, 20 * 30);
 
         builder.pop();
 

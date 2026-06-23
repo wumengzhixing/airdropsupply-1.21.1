@@ -1,6 +1,7 @@
 package com.wu_meng.airdrop_supply.network.s2c;
 
 import com.wu_meng.airdrop_supply.AirdropSupply;
+import com.wu_meng.airdrop_supply.client.network.ClientMapPointPayloadHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -34,15 +35,8 @@ public record MapPointPacketS2C(BlockPos dropPos) implements CustomPacketPayload
 
     public static void handle(MapPointPacketS2C payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (FMLEnvironment.dist != Dist.CLIENT) {
-                return;
-            }
-            try {
-                Class<?> handler = Class.forName("com.wu_meng.airdrop_supply.client.network.ClientMapPointPayloadHandler");
-                handler.getMethod("handle", MapPointPacketS2C.class).invoke(null, payload);
-            } catch (Exception e) {
-                AirdropSupply.LOGGER.error("处理客户端地图标记失败", e);
-            }
+            if (FMLEnvironment.dist != Dist.CLIENT) return;
+            ClientMapPointPayloadHandler.handle(payload);
         });
     }
 }

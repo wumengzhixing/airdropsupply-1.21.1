@@ -93,9 +93,6 @@ neoForge {
             // Please read: https://stackoverflow.com/questions/2031163/when-to-use-the-different-log-levels
             logLevel = org.slf4j.event.Level.DEBUG
 
-            jvmArgument "-XX:+IgnoreUnrecognizedVMOptions"
-            jvmArgument "-XX:+AllowEnhancedClassRedefinition"
-            jvmArgument "-XX:HotswapAgent=fatjar"
         }
     }
 
@@ -118,6 +115,15 @@ configurations {
 }
 
 repositories {
+    mavenCentral()
+    maven {
+        name = 'RedlanceMinecraft'
+        url 'https://repo.redlance.org/public'
+        content {
+            includeGroup("com.zigythebird.playeranim")
+            includeGroup("com.zigythebird")
+        }
+    }
     maven {
         name = 'GeckoLib'
         url 'https://dl.cloudsmith.io/public/geckolib3/geckolib/maven/'
@@ -132,6 +138,9 @@ repositories {
 
 dependencies {
     implementation "software.bernie.geckolib:geckolib-neoforge-${minecraft_version}:4.8.4"
+    implementation("com.zigythebird.playeranim:PlayerAnimationLibNeo:${player_animation_library_version}") {
+        transitive = false
+    }
 //    implementation files('libs/geckolib-neoforge-1.21.1-4.8.4.jar')
     implementation "curse.maven:xaeros-world-map-317780:8298694"
     implementation "curse.maven:xaeros-minimap-263420:8231212"
@@ -145,6 +154,7 @@ var generateModMetadata = tasks.register("generateModMetadata", ProcessResources
             minecraft_version_range: minecraft_version_range,
             neo_version            : neo_version,
             loader_version_range   : loader_version_range,
+            player_animation_library_version: player_animation_library_version,
             mod_id                 : mod_id,
             mod_name               : mod_name,
             mod_license            : mod_license,

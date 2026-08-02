@@ -4,6 +4,8 @@ import com.wu_meng.airdrop_supply.AirdropSupply;
 import com.wu_meng.airdrop_supply.block.AirdropSupplyBlock;
 import com.wu_meng.airdrop_supply.entry.ModBlocks;
 import com.wu_meng.airdrop_supply.entry.ModItems;
+import com.wu_meng.airdrop_supply.entity.AirdropDeliveryVisualEntity;
+import com.wu_meng.airdrop_supply.entity.AirdropPlaneEntity;
 import com.wu_meng.airdrop_supply.misc.Configuration;
 import com.wu_meng.airdrop_supply.network.s2c.MapPointPacketS2C;
 import net.minecraft.core.BlockPos;
@@ -39,7 +41,13 @@ public class AirdropPagerItem extends Item {
 
         if(!level.isClientSide() && level instanceof ServerLevel serverLevel){
             if(level.dimension().equals(Level.OVERWORLD)){
-                var dropPos = new BlockPos((int) player.getX(), level.getMaxBuildHeight(), (int) player.getZ());
+                int dropX = (int) player.getX();
+                int dropZ = (int) player.getZ();
+                var dropPos = new BlockPos(
+                        dropX,
+                        AirdropPlaneEntity.calculateFlightY(serverLevel, dropX, dropZ),
+                        dropZ
+                );
 
                 int ammoWeight = Math.max(0, Configuration.AMMO_AIRDROP_WEIGHT.get());
                 int medicWeight = Math.max(0, Configuration.MEDIC_AIRDROP_WEIGHT.get());
@@ -74,22 +82,24 @@ public class AirdropPagerItem extends Item {
                 }
 
                 var isAmmo = result < ammoWeight;
-                var fallingCrate = FallingBlockEntity.fall(level, dropPos, isAmmo ?
+                AirdropSupplyBlock.Type crateType = isAmmo
+                        ? AirdropSupplyBlock.Type.AMMO
+                        : AirdropSupplyBlock.Type.MEDIC;
+                var fallingCrate = FallingBlockEntity.fall(level, dropPos,
                         ModBlocks.AIRDROP_SUPPLY.get().defaultBlockState()
-                                .setValue(AirdropSupplyBlock.TYPE, AirdropSupplyBlock.Type.AMMO)
-                                .setValue(HorizontalDirectionalBlock.FACING, Direction.Plane.HORIZONTAL.getRandomDirection(level.getRandom()))
-                                .setValue(AirdropSupplyBlock.LEVEL, caseLevel) :
-                        ModBlocks.AIRDROP_SUPPLY.get().defaultBlockState()
-                                .setValue(AirdropSupplyBlock.TYPE, AirdropSupplyBlock.Type.MEDIC)
+                                .setValue(AirdropSupplyBlock.TYPE, crateType)
                                 .setValue(HorizontalDirectionalBlock.FACING, Direction.Plane.HORIZONTAL.getRandomDirection(level.getRandom()))
                                 .setValue(AirdropSupplyBlock.LEVEL, caseLevel));
 
                 CompoundTag blockData = new CompoundTag();
                 fallingCrate.blockData = blockData;
-                blockData.putString("LootTable", AirdropSupply.LootTables.calculateLootTable(isAmmo ? AirdropSupplyBlock.Type.AMMO : AirdropSupplyBlock.Type.MEDIC, caseLevel).location().toString());
+                blockData.putString("LootTable", AirdropSupply.LootTables.calculateLootTable(crateType, caseLevel).location().toString());
                 blockData.putLong("LootTableSeed", level.random.nextLong());
 
                 blockData.putLong("DespawnTime", overworld.getGameTime() + Configuration.AIRDROP_DESPAWN_TIME.get());
+
+                AirdropPlaneEntity.spawn(serverLevel, fallingCrate);
+                AirdropDeliveryVisualEntity.spawn(serverLevel, fallingCrate, crateType, caseLevel);
 
                 if(!player.isCreative()){
                     itemStack.shrink(1);

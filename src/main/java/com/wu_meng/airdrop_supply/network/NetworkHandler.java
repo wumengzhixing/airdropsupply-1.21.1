@@ -1,6 +1,7 @@
 package com.wu_meng.airdrop_supply.network;
 
 import com.wu_meng.airdrop_supply.network.s2c.MapPointPacketS2C;
+import com.wu_meng.airdrop_supply.network.s2c.PlayPlayerAnimationPacketS2C;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 
@@ -17,5 +18,7 @@ public final class NetworkHandler {
     public static void registerPayloads(RegisterPayloadHandlersEvent event) {
         var registrar = event.registrar(PROTOCOL_VERSION);
         registrar.playToClient(MapPointPacketS2C.TYPE, MapPointPacketS2C.STREAM_CODEC, MapPointPacketS2C::handle);
+        registrar.playToClient(PlayPlayerAnimationPacketS2C.TYPE, PlayPlayerAnimationPacketS2C.STREAM_CODEC,
+                PlayPlayerAnimationPacketS2C::handle);
     }
 }

@@ -5,6 +5,8 @@ import com.mojang.brigadier.exceptions.SimpleCommandExceptionType;
 import com.wu_meng.airdrop_supply.AirdropSupply;
 import com.wu_meng.airdrop_supply.block.AirdropSupplyBlock;
 import com.wu_meng.airdrop_supply.entry.ModBlocks;
+import com.wu_meng.airdrop_supply.entity.AirdropDeliveryVisualEntity;
+import com.wu_meng.airdrop_supply.entity.AirdropPlaneEntity;
 import com.wu_meng.airdrop_supply.misc.Configuration;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
@@ -31,7 +33,9 @@ public class CallingAirdropCommand {
                         .executes((sourceStack2) -> {
                             if(sourceStack2.getSource().getLevel().dimension().equals(Level.OVERWORLD)){
                                 var level = sourceStack2.getSource().getLevel();
-                                var dropPos = BlockPosArgument.getLoadedBlockPos(sourceStack2, "pos").atY(300);
+                                var targetPos = BlockPosArgument.getLoadedBlockPos(sourceStack2, "pos");
+                                var dropPos = targetPos.atY(AirdropPlaneEntity.calculateFlightY(
+                                        level, targetPos.getX(), targetPos.getZ()));
                                 var caseLevel = sourceStack2.getArgument("level",AirdropSupplyBlock.CaseLevel.class);
                                 var caseType = sourceStack2.getArgument("type",AirdropSupplyBlock.Type.class);
                                 var fallingCrate =  FallingBlockEntity.fall(level,dropPos,ModBlocks.AIRDROP_SUPPLY.get().defaultBlockState()
@@ -44,6 +48,9 @@ public class CallingAirdropCommand {
                                 blockData.putLong("LootTableSeed",level.random.nextLong());
 
                                 blockData.putLong("DespawnTime", level.getGameTime() + Configuration.AIRDROP_DESPAWN_TIME.get());
+
+                                AirdropPlaneEntity.spawn(level, fallingCrate);
+                                AirdropDeliveryVisualEntity.spawn(level, fallingCrate, caseType, caseLevel);
 
                                 return 1;
                             } else {

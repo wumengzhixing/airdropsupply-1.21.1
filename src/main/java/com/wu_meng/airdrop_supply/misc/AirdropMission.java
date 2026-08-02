@@ -6,6 +6,8 @@ import com.wu_meng.airdrop_supply.block.AirdropSupplyBlock;
 import com.wu_meng.airdrop_supply.capability.AirdropPlayerData;
 import com.wu_meng.airdrop_supply.entry.ModAttachments;
 import com.wu_meng.airdrop_supply.entry.ModBlocks;
+import com.wu_meng.airdrop_supply.entity.AirdropDeliveryVisualEntity;
+import com.wu_meng.airdrop_supply.entity.AirdropPlaneEntity;
 import com.wu_meng.airdrop_supply.network.s2c.MapPointPacketS2C;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -139,8 +141,11 @@ public class AirdropMission {
     }
 
     private void spawnAirdropCrate(ServerLevel overworld, BlockPos dropPos, ServerPlayer player, AirdropPlayerData data, AirdropSupplyBlock.Type type, AirdropSupplyBlock.CaseLevel caseLevel) {
-        // 生成坐标改在最高处，保留 FallingBlockEntity 掉落效果
-        BlockPos spawnPos = new BlockPos(dropPos.getX(), overworld.getMaxBuildHeight() - 1, dropPos.getZ());
+        BlockPos spawnPos = new BlockPos(
+                dropPos.getX(),
+                AirdropPlaneEntity.calculateFlightY(overworld, dropPos.getX(), dropPos.getZ()),
+                dropPos.getZ()
+        );
 
         var fallingCrate = FallingBlockEntity.fall(overworld, spawnPos, ModBlocks.AIRDROP_SUPPLY.get().defaultBlockState()
                 .setValue(AirdropSupplyBlock.TYPE, type)
@@ -153,6 +158,9 @@ public class AirdropMission {
         blockData.putLong("LootTableSeed", player.getRandom().nextLong());
         // 将 DespawnTime 打包进掉落方块里
         blockData.putLong("DespawnTime", overworld.getGameTime() + Configuration.AIRDROP_DESPAWN_TIME.get());
+
+        AirdropPlaneEntity.spawn(overworld, fallingCrate);
+        AirdropDeliveryVisualEntity.spawn(overworld, fallingCrate, type, caseLevel);
 
         data.airdropDespawnInfo.add(Pair.of(overworld.getGameTime() + Configuration.AIRDROP_DESPAWN_TIME.get(), dropPos));
 

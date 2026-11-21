@@ -5,6 +5,7 @@ import com.wu_meng.airdrop_supply.entry.ModBlockEntities;
 import com.wu_meng.airdrop_supply.entry.ModSoundEvents;
 import com.wu_meng.airdrop_supply.misc.AmbushManager;
 import com.wu_meng.airdrop_supply.misc.Configuration;
+import com.wu_meng.airdrop_supply.network.s2c.PlayPlayerAnimationPacketS2C;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -33,6 +34,7 @@ import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -48,6 +50,8 @@ import java.util.UUID;
 @SuppressWarnings("null")
 public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity implements GeoBlockEntity {
 
+    /** Delays the crate animation until the player's hands reach the lid. */
+    private static final int CRATE_OPEN_ANIMATION_DELAY_TICKS = 15;
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private static final RawAnimation OPEN_ANIMATION = RawAnimation.begin().thenPlayAndHold("animation");
     private static final RawAnimation ROTATE_ANIMATION = RawAnimation.begin().thenLoop("animation2");
@@ -65,6 +69,7 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
     private int openAnimationId = 0;
     @Nullable
     private UUID pendingOpenPlayerId = null;
+    private long pendingCrateOpenAtGameTime = -1L;
     private long pendingOpenAtGameTime = -1L;
 
     private final ContainerOpenersCounter openersCounter = new ContainerOpenersCounter() {
@@ -143,6 +148,18 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
                 pBlockEntity.openersCounter.recheckOpeners(pLevel, pPos, pState);
             }
 
+            if (pBlockEntity.pendingOpenPlayerId != null
+                    && !pBlockEntity.isOpen
+                    && pLevel.getGameTime() >= pBlockEntity.pendingCrateOpenAtGameTime) {
+                pBlockEntity.isOpen = true;
+                pBlockEntity.openAnimationStarted = false;
+                pBlockEntity.openAnimationId++;
+                pBlockEntity.pendingCrateOpenAtGameTime = -1L;
+                pBlockEntity.setChanged();
+                pLevel.sendBlockUpdated(pPos, pState, pState, 3);
+                pBlockEntity.playSound(pState, ModSoundEvents.OPEN_AIRDROP.get());
+            }
+
             if (pBlockEntity.pendingOpenPlayerId != null && pLevel.getGameTime() >= pBlockEntity.pendingOpenAtGameTime) {
                 var server = pLevel.getServer();
                 if (server != null) {
@@ -152,6 +169,7 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
                     }
                 }
                 pBlockEntity.pendingOpenPlayerId = null;
+                pBlockEntity.pendingCrateOpenAtGameTime = -1L;
                 pBlockEntity.pendingOpenAtGameTime = -1L;
                 pBlockEntity.setChanged();
             }
@@ -210,7 +228,7 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
     }
 
     public boolean isOpened() {
-        return this.isOpen;
+        return this.isOpen && this.pendingOpenPlayerId == null;
     }
 
     public void markOpened(@Nonnull Player opener) {
@@ -218,28 +236,26 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
         if (currentLevel == null || currentLevel.isClientSide) {
             return;
         }
-        if (this.isOpen) {
+        if (this.isOpen || this.pendingOpenPlayerId != null) {
             return;
         }
-        this.isOpen = true;
-        this.openAnimationStarted = false;
-        this.openAnimationId++;
 
         if (opener instanceof ServerPlayer serverPlayer) {
-            int delayTicks = Math.max(0, Configuration.OPEN_ANIMATION_DELAY_TICKS.get());
-            if (delayTicks == 0) {
-                serverPlayer.openMenu(this);
-            } else {
-                this.pendingOpenPlayerId = serverPlayer.getUUID();
-                this.pendingOpenAtGameTime = currentLevel.getGameTime() + delayTicks;
-            }
+            PacketDistributor.sendToPlayersTrackingEntityAndSelf(
+                    serverPlayer,
+                    new PlayPlayerAnimationPacketS2C(serverPlayer.getId())
+            );
+            long currentGameTime = currentLevel.getGameTime();
+            int menuDelayTicks = Math.max(
+                    CRATE_OPEN_ANIMATION_DELAY_TICKS,
+                    Configuration.OPEN_ANIMATION_DELAY_TICKS.get()
+            );
+            this.pendingOpenPlayerId = serverPlayer.getUUID();
+            this.pendingCrateOpenAtGameTime = currentGameTime + CRATE_OPEN_ANIMATION_DELAY_TICKS;
+            this.pendingOpenAtGameTime = currentGameTime + menuDelayTicks;
         }
 
         this.setChanged();
-        BlockPos pos = this.getBlockPos();
-        BlockState state = this.getBlockState();
-        currentLevel.sendBlockUpdated(pos, state, state, 3);
-        playSound(state, ModSoundEvents.OPEN_AIRDROP.get());
     }
 
     @Override
@@ -340,6 +356,7 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
         this.isOpen = false;
         this.openAnimationStarted = false;
         this.pendingOpenPlayerId = null;
+        this.pendingCrateOpenAtGameTime = -1L;
         this.pendingOpenAtGameTime = -1L;
         this.setChanged();
         level.sendBlockUpdated(pos, state, state, 3);

@@ -6,6 +6,7 @@ import com.wu_meng.airdrop_supply.command.CallingAirdropCommand;
 import com.wu_meng.airdrop_supply.entry.ModAttachments;
 import com.wu_meng.airdrop_supply.entry.ModBlockEntities;
 import com.wu_meng.airdrop_supply.entry.ModBlocks;
+import com.wu_meng.airdrop_supply.entry.ModEntities;
 import com.wu_meng.airdrop_supply.entry.ModItems;
 import com.wu_meng.airdrop_supply.entry.ModSoundEvents;
 import com.wu_meng.airdrop_supply.item.MobTabs;
@@ -50,6 +51,7 @@ public class AirdropSupply
         ModItems.ITEMS.register(safeModEventBus);
         ModBlocks.BLOCKS.register(safeModEventBus);
         ModBlockEntities.BLOCK_ENTITIES.register(safeModEventBus);
+        ModEntities.ENTITY_TYPES.register(safeModEventBus);
         ModSoundEvents.SOUNDS.register(safeModEventBus);
         ModAttachments.ATTACHMENT_TYPES.register(safeModEventBus);
         NetworkHandler.register(safeModEventBus);
@@ -60,6 +62,7 @@ public class AirdropSupply
 
         if (FMLEnvironment.dist == Dist.CLIENT) {
             safeModEventBus.addListener(ModClientEvents::onRegisterRenderers);
+            safeModEventBus.addListener(ModClientEvents::onClientSetup);
             // Temporary: disable open-crate camera animation hook.
             // gameEventBus.addListener(AirdropOpenCameraController::onComputeCameraAngles);
         }

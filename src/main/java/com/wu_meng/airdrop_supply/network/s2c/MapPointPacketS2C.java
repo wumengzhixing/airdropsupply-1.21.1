@@ -8,6 +8,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -35,7 +36,7 @@ public record MapPointPacketS2C(BlockPos dropPos) implements CustomPacketPayload
 
     public static void handle(MapPointPacketS2C payload, IPayloadContext context) {
         context.enqueueWork(() -> {
-            if (FMLEnvironment.dist != Dist.CLIENT) return;
+            if (FMLEnvironment.dist != Dist.CLIENT || !ModList.get().isLoaded("xaerominimap")) return;
             ClientMapPointPayloadHandler.handle(payload);
         });
     }

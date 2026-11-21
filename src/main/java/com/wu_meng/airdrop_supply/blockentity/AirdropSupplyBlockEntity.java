@@ -129,6 +129,14 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
                 }
             }
         } else {
+            if (pLevel.getGameTime() >= pBlockEntity.despawnTime) {
+                // The removal hook reads the inventory, which would otherwise generate pending loot.
+                pBlockEntity.setLootTable(null);
+                pBlockEntity.clearContent();
+                pLevel.setBlockAndUpdate(pPos, Blocks.AIR.defaultBlockState());
+                return;
+            }
+
             pBlockEntity.ticksExisted++;
 
             if (!pBlockEntity.remove) {
@@ -146,11 +154,6 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
                 pBlockEntity.pendingOpenPlayerId = null;
                 pBlockEntity.pendingOpenAtGameTime = -1L;
                 pBlockEntity.setChanged();
-            }
-
-            if (pLevel.getGameTime() >= pBlockEntity.despawnTime) {
-                pBlockEntity.items.clear();
-                pLevel.setBlockAndUpdate(pPos, Blocks.AIR.defaultBlockState());
             }
 
             if (pBlockEntity.lootTable == null && pBlockEntity.isEmpty()) {

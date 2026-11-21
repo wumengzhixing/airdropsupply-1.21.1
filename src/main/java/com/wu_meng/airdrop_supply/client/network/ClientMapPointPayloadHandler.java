@@ -12,7 +12,9 @@ import xaero.hud.minimap.BuiltInHudModules;
 import xaero.hud.minimap.module.MinimapSession;
 import xaero.hud.minimap.waypoint.WaypointCollector;
 import xaero.hud.minimap.waypoint.WaypointColor;
+import xaero.hud.minimap.waypoint.WaypointPurpose;
 import xaero.hud.minimap.waypoint.WaypointSession;
+import xaero.hud.minimap.world.MinimapWorld;
 import xaero.hud.module.HudModule;
 
 import java.util.Objects;
@@ -21,19 +23,18 @@ public final class ClientMapPointPayloadHandler {
     private ClientMapPointPayloadHandler() {}
 
     public static void handle(MapPointPacketS2C payload) {
-        if (!ModList.get().isLoaded("xaerominimap")) return;
         LocalPlayer localPlayer = Minecraft.getInstance().player;
-
-
         try {
             BlockPos pos = payload.dropPos();
-            Waypoint waypoint = new Waypoint(pos.getX(), pos.getY(), pos.getZ(), "AirDrop", "airdrop", WaypointColor.getRandom());
+            Waypoint waypoint = new Waypoint(pos.getX(), pos.getY(), pos.getZ(), "AirDrop", "air", WaypointColor.getRandom(), WaypointPurpose.DESTINATION);
             MinimapSession minimap = BuiltInHudModules.MINIMAP.getCurrentSession();
-            minimap.getWorldManager().getCurrentWorld().getCurrentWaypointSet().add(waypoint);
+            MinimapWorld currentWorld = minimap.getWorldManager().getCurrentWorld();
+            currentWorld.getCurrentWaypointSet().add(waypoint);
+            minimap.getWorldManagerIO().saveWorld(currentWorld);
 
             localPlayer.sendSystemMessage(Component.translatable("notification.airdrop_supply.map_point"));
         } catch (Exception e) {
-            AirdropSupply.LOGGER.error("保存 Xaero 小地图航点失败");
+            AirdropSupply.LOGGER.error("保存 Xaero 小地图航点失败", e);
         }
     }
 }

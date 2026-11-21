@@ -6,8 +6,8 @@ import com.wu_meng.airdrop_supply.entry.ModBlocks;
 import com.wu_meng.airdrop_supply.entry.ModItems;
 import com.wu_meng.airdrop_supply.entity.AirdropDeliveryVisualEntity;
 import com.wu_meng.airdrop_supply.entity.AirdropPlaneEntity;
+import com.wu_meng.airdrop_supply.misc.AirdropManager;
 import com.wu_meng.airdrop_supply.misc.Configuration;
-import com.wu_meng.airdrop_supply.network.s2c.MapPointPacketS2C;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -22,7 +22,6 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nonnull;
 
@@ -96,7 +95,8 @@ public class AirdropPagerItem extends Item {
                 blockData.putString("LootTable", AirdropSupply.LootTables.calculateLootTable(crateType, caseLevel).location().toString());
                 blockData.putLong("LootTableSeed", level.random.nextLong());
 
-                blockData.putLong("DespawnTime", overworld.getGameTime() + Configuration.AIRDROP_DESPAWN_TIME.get());
+                long despawnTime = overworld.getGameTime() + Configuration.AIRDROP_DESPAWN_TIME.get();
+                blockData.putLong("DespawnTime", despawnTime);
 
                 AirdropPlaneEntity.spawn(serverLevel, fallingCrate);
                 AirdropDeliveryVisualEntity.spawn(serverLevel, fallingCrate, crateType, caseLevel);
@@ -114,7 +114,7 @@ public class AirdropPagerItem extends Item {
                 }
 
                 if (player instanceof ServerPlayer serverPlayer) {
-                    PacketDistributor.sendToPlayer(serverPlayer, new MapPointPacketS2C(dropPos));
+                    AirdropManager.trackWaypoint(serverPlayer, fallingCrate, dropPos, despawnTime, false);
                 }
             } else {
                 player.sendSystemMessage(

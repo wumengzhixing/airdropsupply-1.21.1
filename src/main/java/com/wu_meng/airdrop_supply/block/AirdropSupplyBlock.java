@@ -5,6 +5,7 @@ import com.wu_meng.airdrop_supply.blockentity.AirdropSupplyBlockEntity;
 import com.wu_meng.airdrop_supply.entry.ModBlockEntities;
 import com.wu_meng.airdrop_supply.misc.Configuration;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Vec3i;
 import net.minecraft.sounds.SoundEvent;
@@ -117,6 +118,9 @@ public class AirdropSupplyBlock extends HorizontalDirectionalBlock implements En
     public void onRemove(@Nonnull BlockState pState, @Nonnull Level pLevel, @Nonnull BlockPos pPos, @Nonnull BlockState pNewState, boolean pIsMoving) {
         if (!pState.is(pNewState.getBlock())) {
             BlockEntity blockentity = pLevel.getBlockEntity(pPos);
+            if (blockentity instanceof AirdropSupplyBlockEntity crate && pLevel instanceof ServerLevel serverLevel) {
+                crate.onCrateRemoved(serverLevel);
+            }
             if (blockentity instanceof Container) {
                 Containers.dropContents(pLevel, pPos, (Container)blockentity);
                 pLevel.updateNeighbourForOutputSignal(pPos, this);

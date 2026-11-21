@@ -1,11 +1,13 @@
 package com.wu_meng.airdrop_supply.client;
 
 import com.wu_meng.airdrop_supply.client.animation.AirdropPlayerAnimations;
+import com.wu_meng.airdrop_supply.client.network.ClientMapPointPayloadHandler;
 import com.wu_meng.airdrop_supply.client.render.AirdropDeliveryRenderer;
 import com.wu_meng.airdrop_supply.client.render.AirdropPlaneRenderer;
 import com.wu_meng.airdrop_supply.client.render.AirdropSupplyRenderer;
 import com.wu_meng.airdrop_supply.entry.ModBlockEntities;
 import com.wu_meng.airdrop_supply.entry.ModEntities;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 
@@ -20,6 +22,9 @@ public class ModClientEvents {
 
     public static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(AirdropPlayerAnimations::register);
+        if (ModList.get().isLoaded("xaerominimap")) {
+            event.enqueueWork(ClientMapPointPayloadHandler::register);
+        }
     }
 
 }

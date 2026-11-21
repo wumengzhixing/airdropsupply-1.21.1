@@ -1,6 +1,5 @@
 package com.wu_meng.airdrop_supply.misc;
 
-import com.mojang.datafixers.util.Pair;
 import com.wu_meng.airdrop_supply.AirdropSupply;
 import com.wu_meng.airdrop_supply.block.AirdropSupplyBlock;
 import com.wu_meng.airdrop_supply.capability.AirdropPlayerData;
@@ -8,7 +7,6 @@ import com.wu_meng.airdrop_supply.entry.ModAttachments;
 import com.wu_meng.airdrop_supply.entry.ModBlocks;
 import com.wu_meng.airdrop_supply.entity.AirdropDeliveryVisualEntity;
 import com.wu_meng.airdrop_supply.entity.AirdropPlaneEntity;
-import com.wu_meng.airdrop_supply.network.s2c.MapPointPacketS2C;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
@@ -20,7 +18,6 @@ import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.block.HorizontalDirectionalBlock;
 import net.minecraft.world.level.block.state.BlockState;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.lang.ref.WeakReference;
 
@@ -65,7 +62,7 @@ public class AirdropMission {
             return;
         }
 
-        processAirdropSpawn(overworld, dropPos, player, data);
+        processAirdropSpawn(overworld, dropPos, player);
         done = true;
     }
 
@@ -102,7 +99,7 @@ public class AirdropMission {
         return null;
     }
 
-    private void processAirdropSpawn(ServerLevel overworld, BlockPos dropPos, ServerPlayer player, AirdropPlayerData data) {
+    private void processAirdropSpawn(ServerLevel overworld, BlockPos dropPos, ServerPlayer player) {
         int ammoWeight = Math.max(0, Configuration.AMMO_AIRDROP_WEIGHT.get());
         int medicWeight = Math.max(0, Configuration.MEDIC_AIRDROP_WEIGHT.get());
         int noneWeight = Math.max(0, Configuration.NO_AIRDROP_WEIGHT.get());
@@ -123,7 +120,7 @@ public class AirdropMission {
         int day = (int) (overworld.getDayTime() / 24000) + 1;
         AirdropSupplyBlock.CaseLevel caseLevel = calculateCaseLevel(player, day);
 
-        spawnAirdropCrate(overworld, dropPos, player, data, type, caseLevel);
+        spawnAirdropCrate(overworld, dropPos, player, type, caseLevel);
     }
 
     private AirdropSupplyBlock.CaseLevel calculateCaseLevel(Player player, int day) {
@@ -140,7 +137,7 @@ public class AirdropMission {
         return AirdropSupplyBlock.CaseLevel.ADVANCED;
     }
 
-    private void spawnAirdropCrate(ServerLevel overworld, BlockPos dropPos, ServerPlayer player, AirdropPlayerData data, AirdropSupplyBlock.Type type, AirdropSupplyBlock.CaseLevel caseLevel) {
+    private void spawnAirdropCrate(ServerLevel overworld, BlockPos dropPos, ServerPlayer player, AirdropSupplyBlock.Type type, AirdropSupplyBlock.CaseLevel caseLevel) {
         BlockPos spawnPos = new BlockPos(
                 dropPos.getX(),
                 AirdropPlaneEntity.calculateFlightY(overworld, dropPos.getX(), dropPos.getZ()),
@@ -157,12 +154,11 @@ public class AirdropMission {
         blockData.putString("LootTable", AirdropSupply.LootTables.calculateLootTable(type, caseLevel).location().toString());
         blockData.putLong("LootTableSeed", player.getRandom().nextLong());
         // 将 DespawnTime 打包进掉落方块里
-        blockData.putLong("DespawnTime", overworld.getGameTime() + Configuration.AIRDROP_DESPAWN_TIME.get());
+        long despawnTime = overworld.getGameTime() + Configuration.AIRDROP_DESPAWN_TIME.get();
+        blockData.putLong("DespawnTime", despawnTime);
 
         AirdropPlaneEntity.spawn(overworld, fallingCrate);
         AirdropDeliveryVisualEntity.spawn(overworld, fallingCrate, type, caseLevel);
-
-        data.airdropDespawnInfo.add(Pair.of(overworld.getGameTime() + Configuration.AIRDROP_DESPAWN_TIME.get(), dropPos));
 
         Component msg = Component.translatable("notification.airdrop_supply.airdrop_arrive", dropPos.getX(), dropPos.getY(), dropPos.getZ(), player.getScoreboardName());
         if (Configuration.BROADCAST_COORDINATES.get()) {
@@ -171,7 +167,7 @@ public class AirdropMission {
             player.sendSystemMessage(msg);
         }
 
-        PacketDistributor.sendToPlayer(player, new MapPointPacketS2C(dropPos));
+        AirdropManager.trackWaypoint(player, fallingCrate, dropPos, despawnTime, true);
     }
 
     public boolean done() {

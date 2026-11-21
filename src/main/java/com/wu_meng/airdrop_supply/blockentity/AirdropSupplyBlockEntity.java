@@ -3,6 +3,7 @@ package com.wu_meng.airdrop_supply.blockentity;
 import com.wu_meng.airdrop_supply.block.AirdropSupplyBlock;
 import com.wu_meng.airdrop_supply.entry.ModBlockEntities;
 import com.wu_meng.airdrop_supply.entry.ModSoundEvents;
+import com.wu_meng.airdrop_supply.misc.AirdropWaypointRemovals;
 import com.wu_meng.airdrop_supply.misc.AmbushManager;
 import com.wu_meng.airdrop_supply.misc.Configuration;
 import com.wu_meng.airdrop_supply.network.s2c.PlayPlayerAnimationPacketS2C;
@@ -33,6 +34,7 @@ import net.minecraft.world.level.block.entity.ContainerOpenersCounter;
 import net.minecraft.world.level.block.entity.RandomizableContainerBlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.jetbrains.annotations.NotNull;
@@ -63,6 +65,8 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
 
     private NonNullList<ItemStack> items = NonNullList.withSize(27, Objects.requireNonNull(ItemStack.EMPTY, "ItemStack.EMPTY"));
     private long despawnTime = Long.MAX_VALUE;
+    @Nullable
+    private UUID waypointId;
     public long ticksExisted = 0;
     private boolean isOpen = false; // 客户端核心状态
     private boolean openAnimationStarted = false;
@@ -227,6 +231,18 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
         this.setChanged();
     }
 
+    public void onCrateRemoved(ServerLevel level) {
+        if (level.dimension() != Level.OVERWORLD || this.despawnTime == Long.MAX_VALUE
+                || level.getGameTime() >= this.despawnTime) {
+            return;
+        }
+
+        UUID id = this.waypointId != null
+                ? this.waypointId
+                : AirdropWaypointRemovals.legacyId(this.worldPosition, this.despawnTime);
+        AirdropWaypointRemovals.get(level).record(id, this.despawnTime);
+    }
+
     public boolean isOpened() {
         return this.isOpen && this.pendingOpenPlayerId == null;
     }
@@ -262,6 +278,9 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
     protected void saveAdditional(CompoundTag pTag, HolderLookup.Provider provider) {
         super.saveAdditional(pTag, provider);
         pTag.putLong("DespawnTime", this.despawnTime);
+        if (this.waypointId != null) {
+            pTag.putUUID("AirdropWaypointId", this.waypointId);
+        }
         pTag.putLong("TicksExisted", this.ticksExisted);
         pTag.putBoolean("IsOpen", this.isOpen);
         pTag.putInt("OpenAnimationId", this.openAnimationId);
@@ -274,6 +293,7 @@ public class AirdropSupplyBlockEntity extends RandomizableContainerBlockEntity i
     protected void loadAdditional(CompoundTag pTag, HolderLookup.Provider provider) {
         super.loadAdditional(pTag, provider);
         if (pTag.contains("DespawnTime")) this.despawnTime = pTag.getLong("DespawnTime");
+        this.waypointId = pTag.hasUUID("AirdropWaypointId") ? pTag.getUUID("AirdropWaypointId") : null;
         if (pTag.contains("TicksExisted")) this.ticksExisted = pTag.getLong("TicksExisted");
 
         int oldOpenAnimationId = this.openAnimationId;
